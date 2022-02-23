@@ -105,7 +105,7 @@ public class MongoStreamListenerWSFruit {
     @OnClose
     public void onClose(Session session) {
         LOG.info("onClose");
-        sessions.remove(session);      
+        sessions.remove(session.getId());      
     }
   
     @OnError

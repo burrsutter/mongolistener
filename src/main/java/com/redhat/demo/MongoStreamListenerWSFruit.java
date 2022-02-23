@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.websocket.OnClose;
@@ -28,7 +29,7 @@ import io.smallrye.mutiny.subscription.Cancellable;
 
 @ServerEndpoint("/mongofruits")
 
-
+@ApplicationScoped
 public class MongoStreamListenerWSFruit {
     private static final Logger LOG = Logger.getLogger(MongoStreamListenerWS.class);
     

@@ -2,8 +2,8 @@ package com.redhat.demo;
 
 
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.event.Observes;
@@ -32,7 +32,8 @@ import io.smallrye.mutiny.subscription.Cancellable;
 public class MongoStreamListenerWSFruit {
     private static final Logger LOG = Logger.getLogger(MongoStreamListenerWS.class);
     
-    private final List<Session> sessions = new CopyOnWriteArrayList<>();
+    // private final List<Session> sessions = new CopyOnWriteArrayList<>();
+    Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     private Cancellable cancellable;
 
@@ -73,10 +74,10 @@ public class MongoStreamListenerWSFruit {
         Fruit fruit = change.getFullDocument();
         if (fruit != null) {
           String toBeSent = fruit.getName() + ":" + fruit.getDescription();
-          LOG.info(toBeSent);
+          LOG.info("toBeSent=" + toBeSent);
           broadcast(toBeSent); // sent out via the websocket connections  
         } else { // fruit is null
-          LOG.error("fruit is null: " + fruit);
+          // LOG.error("fruit is null: " + fruit);
         }
       } else { // change is null
         LOG.error("change is null: " + change);
@@ -98,7 +99,7 @@ public class MongoStreamListenerWSFruit {
     public void onOpen(Session session) {
       LOG.info("onOpen");
       LOG.info("onOpen ID: " + session.getId());  
-      this.sessions.add(session);      
+      this.sessions.put(session.getId(), session);
     }
   
     @OnClose
@@ -119,7 +120,10 @@ public class MongoStreamListenerWSFruit {
     }    
 
     public void broadcast(String message) {
-        sessions.forEach(session -> {
+        LOG.info("broadcasting: " + message + " to sessions size " + sessions.size());
+        
+        sessions.values().forEach(session -> {
+          LOG.info("to session: " + session.getId());
           session.getAsyncRemote().sendObject(message, result ->  {
               if (result.getException() != null) {
                   LOG.error("Unable to send message: " + result.getException());

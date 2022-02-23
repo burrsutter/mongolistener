@@ -3,12 +3,13 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-    Messages:
+    Fruits:
     <pre id="servermessages"></pre>
     <script>      
       var socket = new WebSocket("ws://" + location.host + "/mongofruits");
       socket.onopen = function (event) {
         socket.send("From Browser to Server"); 
+        console.log("socket open");
       };
       socket.onmessage = function(event) {
          console.log(event.data);

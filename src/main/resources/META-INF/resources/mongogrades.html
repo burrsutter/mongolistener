@@ -3,10 +3,10 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-    Messages:
+    Students Grades:
     <pre id="servermessages"></pre>
     <script>      
-      var socket = new WebSocket("ws://" + location.host + "/mongo");
+      var socket = new WebSocket("ws://" + location.host + "/mongogrades");
       socket.onopen = function (event) {
         socket.send("From Browser to Server"); 
       };

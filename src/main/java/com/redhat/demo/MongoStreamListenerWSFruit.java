@@ -4,10 +4,9 @@ package com.redhat.demo;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -23,6 +22,7 @@ import org.jboss.logging.Logger;
 import io.quarkus.mongodb.reactive.ReactiveMongoClient;
 import io.quarkus.mongodb.reactive.ReactiveMongoCollection;
 import io.quarkus.mongodb.reactive.ReactiveMongoDatabase;
+import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.subscription.Cancellable;
 
@@ -42,8 +42,7 @@ public class MongoStreamListenerWSFruit {
     @Inject 
     ReactiveMongoClient mongoClient;
 
-    @PostConstruct
-    public void setup() {
+    public void init(@Observes StartupEvent event)  {
         /* Mongo Change Streams Listener Stuff */
         ReactiveMongoDatabase database = mongoClient.getDatabase("fruit");
         ReactiveMongoCollection<Fruit> dataCollection = database.getCollection("fruit", Fruit.class);
@@ -54,7 +53,7 @@ public class MongoStreamListenerWSFruit {
         .map(x -> SENTINEL);
 
 
-        this.cancellable = Multi.createBy().merging().streams(watcher, periodic).subscribe().with(s -> this.receiveChanges(s), f -> LOG.error("Unable to consume the stream", f));
+        this.cancellable = Multi.createBy().merging().streams(watcher, periodic).log().subscribe().with(s -> this.receiveChanges(s), f -> LOG.error("Unable to consume the stream", f));
 
         // watcher.subscribe().with(this.receiveChanges());
                    
@@ -72,9 +71,15 @@ public class MongoStreamListenerWSFruit {
       LOG.info("Change: " + change);
       if (change != null) {
         Fruit fruit = change.getFullDocument();
-        String toBeSent = fruit.getName() + ":" + fruit.getDescription();
-        LOG.info(toBeSent);
-        broadcast(toBeSent); // sent out via the websocket connections  
+        if (fruit != null) {
+          String toBeSent = fruit.getName() + ":" + fruit.getDescription();
+          LOG.info(toBeSent);
+          broadcast(toBeSent); // sent out via the websocket connections  
+        } else { // fruit is null
+          LOG.error("fruit is null: " + fruit);
+        }
+      } else { // change is null
+        LOG.error("change is null: " + change);
       }
     }
 

@@ -5,7 +5,7 @@
 
 2. Update application.properties, the mongodb.com console has the string you need 
 
-(images/mongodb-connection.png)
+![MongoDB Connection](images/mongodb-connection.png)
 
 3. mvn quarkus:dev
 

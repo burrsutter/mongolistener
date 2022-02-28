@@ -14,6 +14,9 @@ public class Todo extends PanacheMongoEntity {
 
     public String url;
 
+    public double anumber;
+
+
     public String getTitle() {
         return title;
     }
@@ -44,6 +47,14 @@ public class Todo extends PanacheMongoEntity {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+    
+    public double getAnumber() {
+        return anumber;
+    }
+
+    public void setAnumber(double anumber) {
+        this.anumber = anumber;
     }
 
 

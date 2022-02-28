@@ -74,7 +74,7 @@ public class TodoStreamListener {
       if (change != null) {
         Todo todo = change.getFullDocument();
         if (todo != null) {
-          String toBeSent = todo.getTitle();
+          String toBeSent = todo.getTitle() + ":" + todo.getAnumber();
           // String toBeSent = todo.toString();
           LOG.info("toBeSent=" + toBeSent);
           broadcast(toBeSent); // sent out via the websocket connections  

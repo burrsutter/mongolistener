@@ -30,7 +30,7 @@ import io.quarkus.mongodb.reactive.ReactiveMongoCollection;
 import io.quarkus.mongodb.reactive.ReactiveMongoDatabase;
 import io.smallrye.mutiny.Multi;
 
-@ServerEndpoint("/mongogrades")
+// @ServerEndpoint("/mongogrades")
 
 
 public class MongoStreamListenerWS {

@@ -1,4 +1,4 @@
-package com.redhat.demo;
+package io.quarkus.sample;
 
 
 import java.time.Duration;
@@ -27,18 +27,18 @@ import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.subscription.Cancellable;
 
-// @ServerEndpoint("/mongofruits")
+@ServerEndpoint("/todostream")
 
 @ApplicationScoped
-public class MongoStreamListenerWSFruit {
-    private static final Logger LOG = Logger.getLogger(MongoStreamListenerWS.class);
+public class TodoStreamListener {
+    private static final Logger LOG = Logger.getLogger(TodoStreamListener.class);
     
     // private final List<Session> sessions = new CopyOnWriteArrayList<>();
     Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     private Cancellable cancellable;
 
-    static ChangeStreamDocument<Fruit> SENTINEL = new ChangeStreamDocument<>(null, null, null, null, null, null, null, null, null, null);
+    static ChangeStreamDocument<Todo> SENTINEL = new ChangeStreamDocument<>(null, null, null, null, null, null, null, null, null, null);
 
         
     @Inject 
@@ -46,12 +46,12 @@ public class MongoStreamListenerWSFruit {
 
     public void init(@Observes StartupEvent event)  {
         /* Mongo Change Streams Listener Stuff */
-        ReactiveMongoDatabase database = mongoClient.getDatabase("fruit");
-        ReactiveMongoCollection<Fruit> dataCollection = database.getCollection("fruit", Fruit.class);
+        ReactiveMongoDatabase database = mongoClient.getDatabase("todo");
+        ReactiveMongoCollection<Todo> dataCollection = database.getCollection("todo", Todo.class);
         
         
-        Multi<ChangeStreamDocument<Fruit>> watcher = dataCollection.watch(Fruit.class);
-        Multi<ChangeStreamDocument<Fruit>> periodic = Multi.createFrom().ticks().every(Duration.ofSeconds(10))
+        Multi<ChangeStreamDocument<Todo>> watcher = dataCollection.watch(Todo.class);
+        Multi<ChangeStreamDocument<Todo>> periodic = Multi.createFrom().ticks().every(Duration.ofSeconds(10))
         .map(x -> SENTINEL);
 
 
@@ -69,31 +69,22 @@ public class MongoStreamListenerWSFruit {
         }
     }
 
-    public void receiveChanges(ChangeStreamDocument<Fruit> change) {
-      LOG.info("Change: " + change);
+    public void receiveChanges(ChangeStreamDocument<Todo> change) {
+      LOG.info("\n\n ** Change: " + change);
       if (change != null) {
-        Fruit fruit = change.getFullDocument();
-        if (fruit != null) {
-          String toBeSent = fruit.getName() + ":" + fruit.getDescription();
+        Todo todo = change.getFullDocument();
+        if (todo != null) {
+          String toBeSent = todo.getTitle();
+          // String toBeSent = todo.toString();
           LOG.info("toBeSent=" + toBeSent);
           broadcast(toBeSent); // sent out via the websocket connections  
-        } else { // fruit is null
-          // LOG.error("fruit is null: " + fruit);
+        } else { // todo is null
+          // LOG.error("todo is null: " + todo);
         }
       } else { // change is null
         LOG.error("change is null: " + change);
       }
     }
-
-    // public Consumer<ChangeStreamDocument<Fruit>> receiveChanges() {
-    //   return change -> { 
-    //     LOG.info("Cessage: " + change);
-    //     Fruit fruit = change.getFullDocument();
-    //     String toBeSent = fruit.getName() + ":" + fruit.getDescription();
-    //     LOG.info(toBeSent);
-	  //   broadcast(toBeSent); // sent out via the websocket connections
-    //   };
-    // }
 
     /* Websockets Stuff */
     @OnOpen
